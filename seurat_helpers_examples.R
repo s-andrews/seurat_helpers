@@ -1,9 +1,13 @@
 library(Seurat)
 load("test_data.Rda")
 
+
+# Additional QC metrics
 add_qc_metrics(data) -> data
 head(data[[]])
 
+
+# Pseudobulk
 c(
   "AAACCTGAGAAACCAT-1",
   "AAACCTGTCCAGATCA-1",
@@ -33,3 +37,10 @@ bulk_data %>%
   geom_point() +
   scale_x_log10() + 
   scale_y_log10()
+
+
+# Complexity
+
+
+
+

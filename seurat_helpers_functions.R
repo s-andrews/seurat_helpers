@@ -53,6 +53,16 @@ add_qc_metrics <- function(data) {
   
 }
 
+calculate_complexity <- function(data) {
+  log10(data$nFeature_RNA) / log10(data$nCount_RNA)  -> complexity
+  
+  lm(log10(data$nFeature_RNA)~log10(data$nCount_RNA)) -> complexity.lm
+  
+  data$complexity = log10(data$nFeature_RNA) - ((log10(data$nCount_RNA)*complexity.lm$coefficients[2])+complexity.lm$coefficients[1])
+  
+  return(data)
+}
+
 
 
 
