@@ -67,6 +67,8 @@ add_qc_metrics <- function(data) {
 #' @examples
 pseudobulk <- function(data, cell_ids) {
   
+  return(rowSums(data@assays$RNA@counts[,cell_ids]))
+  
 }
 
 
