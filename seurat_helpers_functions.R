@@ -1,3 +1,6 @@
+library(Seurat)
+library(tidyverse)
+
 
 #' Adds some extra QC metrics to a seurat data object
 #'
