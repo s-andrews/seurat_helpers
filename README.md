@@ -21,7 +21,8 @@ You'll need to modify this path to be the absolute path to your git repository, 
 
 ### QC
 
-###```add_qc_metrics```
+```add_qc_metrics```
+
 This function puts some additional QC metrics into the main metadata table on a seurat object.  The current metrics which are added are:
 
 * Percent Mitochrondrial Reads
@@ -32,12 +33,15 @@ This function puts some additional QC metrics into the main metadata table on a 
 
 
 ```calculate_complexity```
+
 This function calculates a value to indicate the relative complexity of the cells in the library.  This is a measure which relates the number of reads to the number of genes detected.  Libraries with lower complexity might be dominated by the activity of a single, or small group of, genes.  The new value is added to the metadata table.
 
 ```plot_complexity```
+
 This is a plot which shows the number of reads vs the number of genes detected, and is coloured by the complexity value created by ```calcuate_complexity```
 
 
 ### Pseudobulk
 ```pseudobulk```
+
 One option for viewing data across a large number of cells is to create a pseudobulk sample, where we sum the counts from a subset of cells to produce a quantitation with much higher levels of observation.  You'd normally do this from a collection of cells which fell into the same cluster in an analysis to look at the overall expression of the cluster.
