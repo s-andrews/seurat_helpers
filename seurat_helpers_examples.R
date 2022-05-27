@@ -1,5 +1,6 @@
 library(Seurat)
 load("test_data.Rda")
+source("seurat_helpers_functions.R")
 
 
 # Additional QC metrics
@@ -40,7 +41,9 @@ bulk_data %>%
 
 
 # Complexity
+calculate_complexity(data) -> data
 
+plot_complexity(data)
 
 
 

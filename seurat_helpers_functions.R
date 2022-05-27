@@ -64,6 +64,16 @@ calculate_complexity <- function(data) {
 }
 
 
+plot_complexity <- function(data, limit=0.1) {
+  as_tibble(data[[]]) %>%
+    mutate(complexity=replace(complexity,complexity < -limit, -limit)) %>%
+    mutate(complexity=replace(complexity,complexity > limit, limit)) %>%
+    ggplot(aes(x=log10(nCount_RNA), y=log10(nFeature_RNA), colour=complexity)) +
+    geom_point(size=1) +
+    scale_colour_gradient2(low="blue2",mid="grey",high="red2") %>%
+    return()
+}
+
 
 
 #' Get Pseudobulk counts for a collection of cells
