@@ -21,7 +21,7 @@ You'll need to modify this path to be the absolute path to your git repository, 
 
 ### QC
 
-```add_qc_metrics```
+###```add_qc_metrics```
 This function puts some additional QC metrics into the main metadata table on a seurat object.  The current metrics which are added are:
 
 * Percent Mitochrondrial Reads
