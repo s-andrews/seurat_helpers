@@ -67,6 +67,15 @@ calculate_complexity <- function(data) {
 }
 
 
+#' Plot out the complexity values for a cell population
+#'
+#' @param data The seurat object holding data for which calculate_complexity has been run
+#' @param limit The limit for the colour scale on the plot
+#'
+#' @return The ggplot graph of the plot
+#' @export
+#'
+#' @examples
 plot_complexity <- function(data, limit=0.1) {
   as_tibble(data[[]]) %>%
     mutate(complexity=replace(complexity,complexity < -limit, -limit)) %>%
