@@ -104,5 +104,47 @@ pseudobulk <- function(data, cell_ids) {
 }
 
 
+plot_combined_qc <- function (data) {
+  
+  # Counts vs features scatterplot
+  data[[]] %>%
+    arrange(percent_MT) %>%
+    ggplot(aes(x=nCount_RNA, y=nFeature_RNA, colour=percent_MT)) +
+    geom_point(size=1) +
+    scale_x_log10() +
+    scale_y_log10() + 
+    scale_color_gradientn(colors=c("black","blue","green2","red","yellow")) -> plot1
+  
+  
+  # Complexity vs largest gene
+  data[[]] %>%
+    group_by(Largest_Gene) %>%
+    count() %>%
+    ungroup() %>%
+    arrange(desc(n)) %>%
+    slice(1:10) %>%
+    pull(Largest_Gene) -> largest_genes_to_plot
+  
+  data[[]] %>%
+    filter(Largest_Gene %in% largest_genes_to_plot) %>%
+    mutate(Largest_Gene=factor(Largest_Gene, levels=largest_genes_to_plot)) %>%
+    arrange(Largest_Gene) %>%
+    ggplot(aes(x=log10(nCount_RNA), y=log10(nFeature_RNA), colour=Largest_Gene)) +
+    geom_point(size=1) +
+    scale_colour_manual(values=c("grey",RColorBrewer::brewer.pal(9,"Set1"))) -> plot2
+  
+  data[[]] %>%
+    filter(Largest_Gene %in% largest_genes_to_plot) %>%
+    mutate(Largest_Gene=factor(Largest_Gene, levels=largest_genes_to_plot)) %>%
+    arrange(Largest_Gene) %>%
+    ggplot(aes(x=complexity, y=percent_Largest_Gene, colour=Largest_Gene)) +
+    geom_point()+
+    scale_colour_manual(values=c("grey",RColorBrewer::brewer.pal(9,"Set1"))) -> plot3
+  
+  
+  return(list(plot1,plot2,plot3))
+  
+}
+
 
 

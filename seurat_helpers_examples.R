@@ -45,5 +45,6 @@ calculate_complexity(data) -> data
 
 plot_complexity(data, limit=0.1)
 
-
+# QC plots
+plot_combined_qc(data)
 
