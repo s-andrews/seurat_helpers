@@ -43,7 +43,7 @@ bulk_data %>%
 # Complexity
 calculate_complexity(data) -> data
 
-plot_complexity(data)
+plot_complexity(data, limit=0.1)
 
 
 
