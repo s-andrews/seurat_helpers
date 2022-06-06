@@ -147,4 +147,36 @@ plot_combined_qc <- function (data) {
 }
 
 
+plot_cluster_qc <- function(data) {
+  
+  data[[]] %>%
+    as_tibble() %>%
+    filter(!is.na(seurat_clusters)) %>%
+    select(seurat_clusters,where(is.numeric)) %>%
+    pivot_longer(
+      cols=-seurat_clusters,
+      names_to="QC_Metric",
+      values_to="Value"
+    ) -> plot_data
+  
+  
+  plot_data %>%
+    ggplot(aes(x=seurat_clusters, y=Value, fill=QC_Metric)) +
+    geom_violin(show.legend = FALSE) +
+    facet_wrap(vars(QC_Metric), scale="free_y") -> p
+  
+  plot_data %>%
+    group_by(QC_Metric) %>%
+    mutate(Z_Value=(Value-mean(Value))/sd(Value)) %>%
+    ggplot(aes(x=QC_Metric, y=Z_Value, fill=QC_Metric)) +
+    geom_violin(show.legend = FALSE) +
+    geom_hline(yintercept = 0, size=1) +
+    coord_flip() +
+    facet_wrap(vars(seurat_clusters)) -> p2
+  
+  return(list(p,p2))      
+  
+}
+
+
 
