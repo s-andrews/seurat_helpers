@@ -168,6 +168,8 @@ plot_cluster_qc <- function(data) {
   plot_data %>%
     group_by(QC_Metric) %>%
     mutate(Z_Value=(Value-mean(Value))/sd(Value)) %>%
+    mutate(Z_Value=replace(Z_Value, Z_Value>5,5)) %>%
+    mutate(Z_Value=replace(Z_Value, Z_Value< -5,-5)) %>%
     ggplot(aes(x=QC_Metric, y=Z_Value, fill=QC_Metric)) +
     geom_violin(show.legend = FALSE) +
     geom_hline(yintercept = 0, size=1) +
@@ -179,7 +181,7 @@ plot_cluster_qc <- function(data) {
 }
 
 
-plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2)) {
+plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2), desc=FALSE) {
   
   
   # Extract the relevant embeddings
@@ -200,19 +202,25 @@ plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2)) {
     colnames() -> plot_metrics
   
   
-  for (metric in plot_metrics) {
+  lapply(plot_metrics, function(metric){
+    if(desc) {
+      plot_data %>%
+        arrange(desc(!!sym(metric))) -> plot_data
+    }else{
+      plot_data %>%
+        arrange(!!sym(metric)) -> plot_data
+    }
     plot_data %>%
-      arrange(!!sym(metric)) %>%
       ggplot(aes_string(x=embedding_names[1], y=embedding_names[2], colour=metric)) +
       geom_point() +
-      scale_colour_distiller(palette = "Reds", direction = 1) -> p
+      scale_colour_gradientn(colours = c("magenta3","grey","green3")) -> p
     
-      print(p)
+    return(p)
     
-  }
+  }) -> return_list
   
 
-  return(list(p,p2))      
+  return(return_list)      
   
 }
 
@@ -222,6 +230,9 @@ plot_largest_gene_dimensions <- function(data, reduction="pca", dims=c(1,2)) {
   # Extract the relevant embeddings
   Embeddings(data, reduction=reduction)[,dims] %>%
     as_tibble(rownames="cell_id") -> plot_data
+  
+  Embeddings(data, reduction=reduction)[,dims] %>%
+    colnames() -> embedding_names
   
   data[[]] %>%
     as_tibble(rownames="cell_id") %>%
@@ -242,9 +253,22 @@ plot_largest_gene_dimensions <- function(data, reduction="pca", dims=c(1,2)) {
   
   
   plot_data %>%
-    ggplot(aes(x=PC_3, y=PC_4, colour=Largest_Gene_Per_Cluster)) +
+    ggplot(aes_string(x=embedding_names[1], y=embedding_names[2], colour="Largest_Gene_Per_Cluster")) +
     geom_point() +
-    scale_colour_brewer(palette = "Set1")
+    scale_colour_brewer(palette = "Set1") + 
+    guides(colour = guide_legend(override.aes = list(size=4))) -> p
+
+  
+  plot_data %>%
+    ggplot(aes_string(x=embedding_names[1], y=embedding_names[2], colour="Largest_Gene_Per_Cluster")) +
+    geom_point() +
+    scale_colour_brewer(palette = "Set1") + 
+    guides(colour = guide_legend(override.aes = list(size=4))) +
+    facet_wrap(vars(seurat_clusters)) -> p2
+  
+  
+    
+  return(list(p,p2))
   
 }
 
