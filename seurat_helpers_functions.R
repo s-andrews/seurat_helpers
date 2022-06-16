@@ -179,4 +179,100 @@ plot_cluster_qc <- function(data) {
 }
 
 
+plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2)) {
+  
+  
+  # Extract the relevant embeddings
+  Embeddings(data, reduction=reduction)[,dims] %>%
+    as_tibble(rownames="cell_id") -> plot_data
+  
+  colnames(plot_data)[2:3] -> embedding_names
+  
+  data[[]] %>%
+    as_tibble(rownames="cell_id") %>%
+    select(cell_id,where(is.numeric)) %>%
+    right_join(plot_data) -> plot_data
+  
+  
+  data[[]] %>%
+    as_tibble(rownames="cell_id") %>%
+    select(where(is.numeric)) %>%
+    colnames() -> plot_metrics
+  
+  
+  for (metric in plot_metrics) {
+    plot_data %>%
+      arrange(!!sym(metric)) %>%
+      ggplot(aes_string(x=embedding_names[1], y=embedding_names[2], colour=metric)) +
+      geom_point() +
+      scale_colour_distiller(palette = "Reds", direction = 1) -> p
+    
+      print(p)
+    
+  }
+  
+
+  return(list(p,p2))      
+  
+}
+
+
+plot_largest_gene_dimensions <- function(data, reduction="pca", dims=c(1,2)) {
+  
+  # Extract the relevant embeddings
+  Embeddings(data, reduction=reduction)[,dims] %>%
+    as_tibble(rownames="cell_id") -> plot_data
+  
+  data[[]] %>%
+    as_tibble(rownames="cell_id") %>%
+    select(cell_id,seurat_clusters,Largest_Gene) %>%
+    right_join(plot_data) %>%
+    filter(!is.na(seurat_clusters)) -> plot_data
+
+  plot_data %>%
+    group_by(seurat_clusters,Largest_Gene) %>%
+    count() %>%
+    arrange(desc(n)) %>%
+    group_by(seurat_clusters) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(-n) %>%
+    rename(Largest_Gene_Per_Cluster = Largest_Gene) %>%
+    right_join(plot_data) -> plot_data
+  
+  
+  plot_data %>%
+    ggplot(aes(x=PC_3, y=PC_4, colour=Largest_Gene_Per_Cluster)) +
+    geom_point() +
+    scale_colour_brewer(palette = "Set1")
+  
+}
+
+knee_plot <- function(data) {
+  data[[]] %>%
+    as_tibble() %>%
+    select(nCount_RNA) %>%
+    arrange(desc(nCount_RNA)) %>%
+    mutate(index=1:n()) %>%
+    ggplot(aes(x=index, y=nCount_RNA)) +
+    geom_line() +
+    scale_x_log10() +
+    scale_y_log10() +
+    xlab("Number of cells") +
+    ylab("Number of UMIs") -> p
+  
+  return(p)
+}
+
+
+
+
+
+
+
+
+
+
+
+
 

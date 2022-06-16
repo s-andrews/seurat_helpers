@@ -51,5 +51,10 @@ plot_combined_qc(data)
 # QC metrics per cluster
 plot_cluster_qc(data)
 
+FindVariableFeatures(data) -> data
+ScaleData(data) -> data
+RunPCA(data) -> data
+
+
 
 
