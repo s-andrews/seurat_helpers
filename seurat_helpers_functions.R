@@ -14,21 +14,33 @@ add_qc_metrics <- function(data) {
   
   # Mitochrondrial sequences
   message("Adding percent mitochondrial")
-  PercentageFeatureSet(data,pattern="^MT-") -> data$percent_MT
+  if (any(startsWith(rownames(data),"mt-"))) {
+    PercentageFeatureSet(data,pattern="^mt-") -> data$percent_MT
+  }else {
+    PercentageFeatureSet(data,pattern="^MT-") -> data$percent_MT
+  }
   
   # Ribosomal sequences
   message("Adding percent ribosomal")
-  PercentageFeatureSet(data,pattern="^RP[LS]") -> data$percent_Ribosomal
-  
+  if (any(startsWith(rownames(data),"Rpl"))) {
+    PercentageFeatureSet(data,pattern="^Rp[ls]") -> data$percent_Ribosomal
+  }else {
+    PercentageFeatureSet(data,pattern="^RP[LS]") -> data$percent_Ribosomal
+  }
+
   # Malat1
   message("Adding percent Malat1")
-  PercentageFeatureSet(data,pattern="MALAT1") -> data$percent_Malat
+  if ("MALAT1" %in% rownames(data)) {
+    PercentageFeatureSet(data,pattern="MALAT1") -> data$percent_Malat
+  }else {
+    PercentageFeatureSet(data,pattern="Malat1") -> data$percent_Malat
+  }
   
   # Largest Gene
   message("Adding largest gene information")
   
   message("Making data subset")
-  data@assays$RNA@counts[rownames(data) != "MALAT1",] -> data.nomalat
+  data@assays$RNA@counts[!rownames(data) %in% c("MALAT1","Malat1"),] -> data.nomalat
   
   message("Getting largest count")
   apply(
@@ -122,7 +134,7 @@ plot_combined_qc <- function (data) {
     count() %>%
     ungroup() %>%
     arrange(desc(n)) %>%
-    slice(1:10) %>%
+    slice(1:9) %>%
     pull(Largest_Gene) -> largest_genes_to_plot
   
   data[[]] %>%
