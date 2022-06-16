@@ -68,6 +68,30 @@ add_qc_metrics <- function(data) {
   
 }
 
+largest_gene_table <- function (data) {
+  data[[]] %>%
+    group_by(Largest_Gene) %>%
+    count(name = "number_of_cells") %>%
+    arrange(desc(number_of_cells)) %>%
+    ungroup() %>%
+    return()
+}
+
+largest_gene_per_cluster_table <- function (data) {
+  filtered_data[[]] %>%
+    group_by(Largest_Gene,seurat_clusters) %>%
+    count(name = "number_of_cells") %>%
+    arrange(desc(number_of_cells)) %>%
+    group_by(seurat_clusters) %>%
+    slice(1:5) %>%
+    ungroup() %>%
+    arrange(seurat_clusters,desc(number_of_cells)) %>%
+    return()
+}
+
+
+
+
 calculate_complexity <- function(data) {
   log10(data$nFeature_RNA) / log10(data$nCount_RNA)  -> complexity
   
