@@ -158,7 +158,7 @@ plot_combined_qc <- function (data) {
     count() %>%
     ungroup() %>%
     arrange(desc(n)) %>%
-    slice(1:9) %>%
+    slice(1:10) %>%
     pull(Largest_Gene) -> largest_genes_to_plot
   
   data[[]] %>%
@@ -167,7 +167,8 @@ plot_combined_qc <- function (data) {
     arrange(Largest_Gene) %>%
     ggplot(aes(x=log10(nCount_RNA), y=log10(nFeature_RNA), colour=Largest_Gene)) +
     geom_point(size=1) +
-    scale_colour_manual(values=c("grey",RColorBrewer::brewer.pal(9,"Set1"))) -> plot2
+    scale_colour_manual(values=c("grey",RColorBrewer::brewer.pal(9,"Set1"))) + 
+    guides(colour = guide_legend(override.aes = list(size=4))) -> plot2
   
   data[[]] %>%
     filter(Largest_Gene %in% largest_genes_to_plot) %>%
@@ -175,7 +176,8 @@ plot_combined_qc <- function (data) {
     arrange(Largest_Gene) %>%
     ggplot(aes(x=complexity, y=percent_Largest_Gene, colour=Largest_Gene)) +
     geom_point()+
-    scale_colour_manual(values=c("grey",RColorBrewer::brewer.pal(9,"Set1"))) -> plot3
+    scale_colour_manual(values=c("grey",RColorBrewer::brewer.pal(9,"Set1"))) + 
+    guides(colour = guide_legend(override.aes = list(size=4))) -> plot3
   
   
   return(list(plot1,plot2,plot3))
@@ -217,7 +219,7 @@ plot_cluster_qc <- function(data) {
 }
 
 
-plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2), desc=FALSE) {
+plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2), desc=FALSE, log_scale=FALSE) {
   
   
   # Extract the relevant embeddings
@@ -246,10 +248,19 @@ plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2), desc=FALSE) {
       plot_data %>%
         arrange(!!sym(metric)) -> plot_data
     }
-    plot_data %>%
-      ggplot(aes_string(x=embedding_names[1], y=embedding_names[2], colour=metric)) +
-      geom_point() +
-      scale_colour_gradientn(colours = c("magenta3","grey","green3")) -> p
+    if (log_scale) {
+      plot_data %>%
+        ggplot(aes_string(x=embedding_names[1], y=embedding_names[2])) +
+        geom_point(aes(colour=log10(!!sym(metric)))) +
+        scale_colour_gradientn(colours = c("magenta3","grey","green3")) -> p
+      
+    }else {
+      plot_data %>%
+        ggplot(aes_string(x=embedding_names[1], y=embedding_names[2], colour=metric)) +
+        geom_point() +
+        scale_colour_gradientn(colours = c("magenta3","grey","green3")) -> p
+      
+    }
     
     return(p)
     
