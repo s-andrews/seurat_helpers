@@ -40,6 +40,28 @@ This function calculates a value to indicate the relative complexity of the cell
 
 This is a plot which shows the number of reads vs the number of genes detected, and is coloured by the complexity value created by ```calcuate_complexity```
 
+```plot_combined_qc```
+Generates plots of combinations of QC parameters which are often helpful to view in combination.
+
+1. Counts vs Features coloured by percent MT
+
+2. Counts vs Features coloured by largest gene
+
+3. Complexity vs Percent Largest Gene
+
+
+```plot_cluster_qc```
+Plots all QC metrics split by cluster as a violin plot
+
+```plot_reduction_qc```
+Plots all QC metrics superimposed on a dimension reduction plot.
+
+```knee_plot```
+Plots a knee plot of your data
+
+```plot_integration_anchors```
+Plots the position of integration anchors on two datasets being integrated
+
 
 ### Pseudobulk
 ```pseudobulk```
