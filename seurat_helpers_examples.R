@@ -1,4 +1,5 @@
 library(Seurat)
+library(ggpubr)
 load("test_data.Rda")
 source("seurat_helpers_functions.R")
 
@@ -46,15 +47,27 @@ calculate_complexity(data) -> data
 plot_complexity(data, limit=0.1)
 
 # QC plots
-plot_combined_qc(data)
+plot_combined_qc(data) -> combined_qc_plots
+
+ggarrange(plotlist = combined_qc_plots, ncol = 1)
 
 # QC metrics per cluster
-plot_cluster_qc(data)
+plot_cluster_qc(data) -> plot_cluster_plots
+
+ggarrange(plotlist = plot_cluster_plots, ncol=1)
 
 FindVariableFeatures(data) -> data
 ScaleData(data) -> data
 RunPCA(data) -> data
 
+# QC metrics on PCA
+plot_reduction_qc(data) -> reduction_qc_plots
+ggarrange(plotlist = reduction_qc_plots, nrow=4, ncol=2)
 
+# QC metrics on PCA log
+plot_reduction_qc(data, log_scale = TRUE) -> reduction_qc_plots_log
+ggarrange(plotlist = reduction_qc_plots_log, nrow=4, ncol=2)
 
+# Knee plot
+knee_plot(data)
 
