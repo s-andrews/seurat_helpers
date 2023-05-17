@@ -40,7 +40,10 @@ add_qc_metrics <- function(data) {
   message("Adding largest gene information")
   
   message("Making data subset")
-  data@assays$RNA@counts[!rownames(data) %in% c("MALAT1","Malat1"),] -> data.nomalat
+  # For this we'll remove all mitochondria, ribosomal and malat data
+  genes_to_remove = str_detect(tolower(rownames(data)),"^mt-") | str_detect(tolower(rownames(data)),"^rp[ls]") | tolower(rownames(data))=="malat1"
+  
+  data@assays$RNA@counts[!genes_to_remove,] -> data.nomalat
   
   message("Getting largest count")
   apply(
@@ -140,6 +143,14 @@ pseudobulk <- function(data, cell_ids) {
 }
 
 
+#' Plot combinations of QC metrics
+#'
+#' @param data a Seurat object
+#'
+#' @return A list of 3 plots
+#' @export
+#'
+#' @examples
 plot_combined_qc <- function (data) {
   
   # Counts vs features scatterplot
@@ -185,6 +196,14 @@ plot_combined_qc <- function (data) {
 }
 
 
+#' Plot all QC metrics for all clusters
+#'
+#' @param data a Seurat object
+#'
+#' @return a list of two plots
+#' @export
+#'
+#' @examples
 plot_cluster_qc <- function(data) {
   
   data[[]] %>%
@@ -200,7 +219,7 @@ plot_cluster_qc <- function(data) {
   
   plot_data %>%
     ggplot(aes(x=seurat_clusters, y=Value, fill=QC_Metric)) +
-    geom_violin(show.legend = FALSE) +
+    geom_boxplot(show.legend = FALSE) +
     facet_wrap(vars(QC_Metric), scale="free_y") -> p
   
   plot_data %>%
@@ -219,6 +238,19 @@ plot_cluster_qc <- function(data) {
 }
 
 
+
+#' Plot all QC metrics on a dimension reduction plot
+#'
+#' @param data the seurat object
+#' @param reduction which reduction to use (default pca)
+#' @param dims which dimensions to use
+#' @param desc reverse the order of the values
+#' @param log_scale plot on a log scale
+#'
+#' @return a list of plots
+#' @export
+#'
+#' @examples
 plot_reduction_qc <- function(data,reduction="pca", dims=c(1,2), desc=FALSE, log_scale=FALSE) {
   
   
@@ -319,6 +351,14 @@ plot_largest_gene_dimensions <- function(data, reduction="pca", dims=c(1,2)) {
   
 }
 
+#' Plot a knee plot of your data
+#'
+#' @param data The seurat object to plot
+#'
+#' @return a knee plot of the data
+#' @export
+#'
+#' @examples
 knee_plot <- function(data) {
   data[[]] %>%
     as_tibble() %>%
@@ -333,6 +373,88 @@ knee_plot <- function(data) {
     ylab("Number of UMIs") -> p
   
   return(p)
+}
+
+#' Plot integration anchors
+#'
+#' @param data_split The list of split datasets to integrate
+#' @param data The original data containing the tsne embedding
+#' @param anchors The set of defined anchors from FindIntegrationAnchors
+#' @param data1 The index of the first dataset to plot
+#' @param data2 The index of the second dataset to plot
+#' @param min_score The minimum anchor score to plot
+#'
+#' @return A ggplot of the anchors
+#' @export
+#'
+#' @examples
+plot_anchors <- function(data_split, data, anchors, data1,data2,min_score=0.5) {
+  
+  colnames(data_split[[data1]]) -> c1
+  colnames(data_split[[data2]]) -> c2
+  
+  tibble(
+    cell_id=c1,
+    cell=1:length(c1)
+  ) -> c1
+  
+  tibble(
+    cell_id=c2,
+    cell=1:length(c2)
+  ) -> c2
+  
+  anchors@anchors %>%
+    filter(dataset1==data1 & dataset2==data2)  %>%
+    filter(score>min_score) %>%
+    mutate(pair=1:n()) -> anchor_cells
+  
+  anchor_cells %>%
+    select(pair,cell1) %>%
+    rename(cell=cell1) %>%
+    left_join(c1) %>%
+    select(-cell) -> c1
+  
+  anchor_cells %>%
+    select(pair,cell2) %>%
+    rename(cell=cell2) %>%
+    left_join(c2) %>%
+    select(-cell) -> c2
+  
+  bind_rows(c1,c2) %>%
+    arrange(pair) -> paired_cells
+  
+  rm(c1, c2)
+  
+  data@reductions$tsne@cell.embeddings %>%
+    as_tibble(rownames="cell_id") %>%
+    right_join(paired_cells) %>%
+    select(-cell_id) %>%
+    arrange(pair) %>%
+    mutate(from_to=rep(c("from","to"),n()/2)) %>%
+    pivot_wider(
+      names_from=from_to,
+      values_from=c(tSNE_1,tSNE_2)
+    ) -> paired_tsne
+  
+  colnames(anchors@object.list[[1]])
+  
+  names(anchors@object.list)[1]
+  
+  data@reductions$tsne@cell.embeddings %>%
+    as_tibble(rownames="cell") %>%
+    mutate(dataset=case_when(
+      cell %in% colnames(anchors@object.list[[data1]]) ~   names(anchors@object.list)[data1],
+      cell %in% colnames(anchors@object.list[[data2]]) ~   names(anchors@object.list)[data2]
+    )) %>%
+    filter(!is.na(dataset)) %>%
+    ggplot(aes(x=tSNE_1, y=tSNE_2, colour=dataset)) +
+    geom_point() +
+    scale_colour_brewer(palette = "Set1") +
+    geom_segment(data=paired_tsne, aes(x=tSNE_1_from, y=tSNE_2_from, xend=tSNE_1_to, yend=tSNE_2_to), colour="black") +
+    xlab(data1) + ylab(data2) -> p
+  
+  return(p)
+  
 }
 
 
